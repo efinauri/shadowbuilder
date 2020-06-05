@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["attrs",""],["id_to_sv_portal_encode","The official site converts a card id to base 64 with custom radix."],["name",""]],"struct":[["Deck","The chosen encoding uses a vectors of unique cards and a vector of their number of copies in use."]]});

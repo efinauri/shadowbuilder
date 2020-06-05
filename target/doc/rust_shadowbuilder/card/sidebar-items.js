@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["Card","The struct holding all the card attributes found in the json files created by `tagger.py`"],["_FormData","Card attributes that change before and after evolving."]]});

@@ -1,0 +1,1 @@
+initSidebarItems({"constant":[["CRAFTS","`[\"Neutral\", \"Forestcraft\", \"Swordcraft\", \"Runecraft\", \"Dragoncraft\", \"Shadowcraft\", \"Bloodcraft\", \"Havencraft\", \"Portalcraft\"]`"],["DECK_SIZE","`40`"],["MAX_CARD_COPIES","`3`"],["POPULATION_SIZE","`2,048`"],["PP_CURVE_SIZE","`8`"]]});

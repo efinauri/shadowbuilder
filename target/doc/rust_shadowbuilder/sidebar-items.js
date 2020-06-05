@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["main",""]],"mod":[["card","Implements the `Card` structure."],["context","Implements the `Context` structure."],["deck","Implements the `Deck` structure."],["generics","Functions over generic types."],["globals","Global variables common to most modules."],["population",""]]});
