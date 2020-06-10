@@ -1,7 +1,7 @@
-use crate::globals;
-use crate::generics;
 use crate::context::Context;
 use crate::deck::Deck;
+use crate::generics;
+use crate::globals;
 use rand::Rng;
 
 pub struct Population {
@@ -23,7 +23,7 @@ impl Population {
         let mut best_individual = Deck::new();
         for i in 0..globals::POPULATION_SIZE {
             decks.push(Deck::from_random(&ctx));
-            ratings.push(decks[i].rate(&ctx));
+            ratings.push(decks[i].rate(&ctx, 0.5, 0.5));
             if ratings[i] > max_rating {
                 max_rating = ratings[i];
                 best_individual = decks[i].clone();
@@ -48,20 +48,28 @@ impl Population {
         self.max_rating = generics::max(&self.ratings);
         if self.max_rating > self.best_rating {
             self.best_rating = self.max_rating;
-            self.best_individual =
-                self.decks[self.ratings.iter().position(|&n| n == self.max_rating).unwrap()].clone();
+            self.best_individual = self.decks[self
+                .ratings
+                .iter()
+                .position(|&n| n == self.max_rating)
+                .unwrap()]
+            .clone();
         }
     }
 
-    fn cull(&mut self, threshold: f64, annealing: f64, threshold_cap: f64) -> f64{
+    fn cull(&mut self, threshold: f64, annealing: f64, threshold_cap: f64) -> f64 {
         let mut threshold = threshold + annealing * self.generation as f64;
-        if threshold > threshold_cap { threshold = threshold_cap; }
+        if threshold > threshold_cap {
+            threshold = threshold_cap;
+        }
         let mut current_idx = 0;
         while current_idx < self.decks.len() {
             if self.ratings[current_idx] < threshold {
                 self.ratings.remove(current_idx);
                 self.decks.remove(current_idx);
-            } else { current_idx += 1; }
+            } else {
+                current_idx += 1;
+            }
         }
         threshold
     }
@@ -75,37 +83,44 @@ impl Population {
         }
     }
 
-    pub fn cycle(&mut self, ctx: &Context) -> bool{
+    pub fn cycle(&mut self, ctx: &Context) -> bool {
         println!("\n Generation: {}\n", self.generation);
         let cull_threshold = self.cull(0.3, 0.01, 1.0);
         if self.decks.len() < 2 {
-            println!("Too many individuals were culled \
-            for the program to continue.\n");
+            println!(
+                "Too many individuals were culled \
+            for the program to continue.\n"
+            );
             self.best_individual.print(&ctx);
             return false;
         }
         println!("Threshold: {:.3}", cull_threshold);
-        println!("Remaining individuals: {} [{:.3}%]", self.decks.len(),
-                 100 * self.decks.len()/globals::POPULATION_SIZE);
+        println!(
+            "Remaining individuals: {} [{:.2}%]",
+            self.decks.len(),
+            100.0 * self.decks.len() as f64 / globals::POPULATION_SIZE as f64
+        );
         let mut next_decks = Vec::new();
         let mut next_ratings = Vec::new();
         while next_decks.len() < globals::POPULATION_SIZE {
-            let mother = self.select();
-            let father = &self.select();
-            let child = mother.mix(father, &ctx);
-            next_ratings.push(child.rate(&ctx));
+            let mut parent = self.select();
+            let child = parent.mix(&mut Deck::from_random(&ctx));
+            next_ratings.push(child.rate(&ctx, 0.5, 0.5));
             next_decks.push(child);
         }
         self.decks = next_decks;
         self.ratings = next_ratings;
         self.update_history();
-        println!("Fitness profile of generation {}:\n\
+        println!(
+            "Fitness profile of generation {}:\n\
         \tMinimum fitness: {:<28}\n\
         \tAverage fitness: {:<28}\n\
         \tMaximum fitness: {:<28}\n\
         Overall fitness profile:\n\
         \tMaximum fitness: {:<28}\n\
-        ", self.generation, self.min_rating, self.avg_rating, self.max_rating, self.best_rating);
+        ",
+            self.generation, self.min_rating, self.avg_rating, self.max_rating, self.best_rating
+        );
         true
     }
 }
@@ -118,7 +133,7 @@ fn test() {
     assert!(p.max_rating > p.avg_rating && p.avg_rating > p.min_rating);
     p.best_individual.print(&ctx);
     for _ in 0..10 {
-        p.cycle(&ctx)
+        p.cycle(&ctx);
     }
     while p.best_rating < 0.7 {
         p.cycle(&ctx);

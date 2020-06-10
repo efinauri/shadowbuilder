@@ -2,6 +2,8 @@
 
 use serde_json;
 
+/// Auxiliary container of some card attributes for `Card`
+///
 /// Card attributes that change before and after evolving.
 #[derive(Debug)]
 pub struct _FormData {
@@ -32,7 +34,7 @@ pub struct Card {
 impl Card {
     /// # Arguments
     /// * `card` - When a json created by `tagger.py` gets parsed into the default enum Value
-    /// `cards_data`, by calling `cards_data.as_object()` one can get a Map binding a card's name
+    /// `data`, by calling `data.as_object()` one can get a Map binding a card's name
     /// to a `Value` storing that card's attributes, which is what this function is taking in.
     pub fn from_value(card: &serde_json::Value) -> Card {
         let data_tags = card["tags"].as_array().unwrap();
@@ -42,20 +44,20 @@ impl Card {
         }
         Card {
             base_data: _FormData {
-                description: String::from(card["baseData"]["description"].as_str()
-                    .unwrap()),
+                description: String::from(card["baseData"]["description"].as_str().unwrap()),
                 attack: card["baseData"]["attack"].as_u64().unwrap() as u8,
                 defense: card["baseData"]["defense"].as_u64().unwrap() as u8,
             },
             evo_data: _FormData {
-                description: String::from(card["evoData"]["description"].as_str()
-                    .unwrap()),
+                description: String::from(card["evoData"]["description"].as_str().unwrap()),
                 attack: card["evoData"]["attack"].as_u64().unwrap() as u8,
                 defense: card["evoData"]["defense"].as_u64().unwrap() as u8,
             },
             expansion: String::from(card["expansion"].as_str().unwrap()),
             faction: String::from(card["faction"].as_str().unwrap()),
-            id: String::from(card["id"].as_str().unwrap()).trim().parse()
+            id: String::from(card["id"].as_str().unwrap())
+                .trim()
+                .parse()
                 .unwrap(),
             mana_cost: card["manaCost"].as_u64().unwrap() as u8,
             race: String::from(card["race"].as_str().unwrap()),

@@ -1,7 +1,7 @@
 [package]
-name = "rust-shadowbuilder"
+name = "shadowbuilder"
 version = "0.1.0"
-authors = ["user6174 <enne100724@gmail.com>"]
+authors = ["user6174"]
 edition = "2018"
 
 [dependencies]
