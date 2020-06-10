@@ -77,14 +77,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "rust-shadowbuilder"
-version = "0.1.0"
-dependencies = [
- "rand",
- "serde_json",
-]
-
-[[package]]
 name = "ryu"
 version = "1.0.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -105,6 +97,14 @@ dependencies = [
  "itoa",
  "ryu",
  "serde",
+]
+
+[[package]]
+name = "shadowbuilder"
+version = "0.1.0"
+dependencies = [
+ "rand",
+ "serde_json",
 ]
 
 [[package]]
