@@ -33,14 +33,8 @@ pub struct Context {
 /// # Arguments
 /// * `ctx` - (`game_mode`, `craft`) as used in [Context](struct.Context.html).
 fn get_card_library(ctx: (u8, usize)) -> HashMap<String, Card> {
-    let f = globals::ASSETS[ctx.0 as usize % 3 + ctx.1];
-    let data: serde_json::Value = serde_json::from_str(f).unwrap();
-    let data = data.as_object().unwrap();
-    let mut ctx_card_library = HashMap::new();
-    for card in data.keys() {
-        ctx_card_library.insert(String::from(card), Card::from_value(&data[card]));
-    }
-    ctx_card_library
+    let f = globals::ASSETS[9 * (ctx.0 as usize % 3) + ctx.1];
+    serde_json::from_str(&f).unwrap()
 }
 
 /// Sorts `card_library` by the specified card attributes.
@@ -56,24 +50,25 @@ fn deep_sort(lib: &HashMap<String, Card>) -> Vec<String> {
     for card in lib.iter() {
         result.push(String::from(card.0));
     }
-    result.sort_by_key(|k| &lib[k].id);
-    result.sort_by_key(|k| &lib[k].race);
-    result.sort_by_key(|k| &lib[k].faction);
-    result.sort_by_key(|k| &lib[k]._type);
-    result.sort_by_key(|k| &lib[k].tags);
-    result.sort_by_key(|k| &lib[k].mana_cost);
+    result.sort_by_key(|k| &lib[k].id_);
+    result.sort_by_key(|k| &lib[k].trait_);
+    result.sort_by_key(|k| &lib[k].craft_);
+    result.sort_by_key(|k| &lib[k].type_);
+    result.sort_by_key(|k| &lib[k].tags_);
+    result.sort_by_key(|k| &lib[k].pp_);
     result
 }
 
 impl Context {
     /// Loads the Unlimited Forestcraft cardpool, used to skip user input during tests.
+    #[allow(dead_code)]
     pub fn from_debug() -> Context {
         let mut card_library = HashMap::new();
-        card_library.extend(get_card_library((3, 0))); // Neutrals
-        card_library.extend(get_card_library((3, 1)));
+        card_library.extend(get_card_library((1, 0))); // Neutrals
+        card_library.extend(get_card_library((1, 1)));
         let card_list = deep_sort(&card_library);
         Context {
-            game_mode: 3,
+            game_mode: 1,
             craft: 1,
             card_library,
             card_list,
@@ -105,7 +100,7 @@ impl Context {
         let mut prompt = String::new();
         prompt += "0 - done choosing\n";
         for card in &card_list {
-            for tag in &card_library[card].tags {
+            for tag in &card_library[card].tags_ {
                 if !available_tags.contains(&tag) {
                     available_tags.push(tag);
                     prompt += format!("{} - {}\n", available_tags.len(), tag).as_str();
@@ -144,10 +139,7 @@ impl Context {
 #[test]
 fn test() {
     let ctx = Context::from_debug();
-    assert_eq!(globals::CRAFTS[ctx.craft], "Forestcraft");
-    assert_eq!(ctx.card_library["Robogoblin"].faction, "Neutral");
-    assert!(
-        ctx.card_library[&ctx.card_list[0]].mana_cost
-            < ctx.card_library[&ctx.card_list[50]].mana_cost
-    );
+    println!("{:?}", ctx.card_list);
+    assert_eq!(ctx.card_library["Robogoblin"].pp_, 2);
+    assert!(ctx.card_library[&ctx.card_list[0]].pp_ < ctx.card_library[&ctx.card_list[50]].pp_);
 }

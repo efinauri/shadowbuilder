@@ -15,7 +15,7 @@ pub struct Deck {
     cards: Vec<usize>,
     /// Holds in its ith element the number of copies of the ith element of `cards`.
     /// This vector is usually consulted through the `copies()` method.
-    _copies: Vec<usize>,
+    copies_: Vec<usize>,
 }
 
 /// The [official site converts](https://shadowverse-portal.com) a card id to base 64
@@ -52,14 +52,14 @@ impl Deck {
     /// the crossover phase.
     fn copies(&self, card: usize) -> usize {
         match self.cards.iter().position(|&n| n == card) {
-            Some(i) => self._copies[i],
+            Some(i) => self.copies_[i],
             None => 0,
         }
     }
 
     /// Returns the current deck size.
     fn current_size(&self) -> usize {
-        self._copies.iter().sum::<usize>() as usize
+        self.copies_.iter().sum::<usize>() as usize
     }
 
     /// Returns an array whose ith element is the number of cards in the deck with a pp cost of i+1.
@@ -68,7 +68,7 @@ impl Deck {
     fn get_pp_curve(&self, ctx: &Context) -> [usize; globals::PP_CURVE_SIZE] {
         let mut pp_curve = [0; globals::PP_CURVE_SIZE];
         for card in &self.cards {
-            let mut pp_cost = attrs(*card, ctx).mana_cost as usize;
+            let mut pp_cost = attrs(*card, ctx).pp_ as usize;
             if pp_cost > globals::PP_CURVE_SIZE {
                 pp_cost = globals::PP_CURVE_SIZE;
             }
@@ -83,7 +83,7 @@ impl Deck {
     pub fn new() -> Deck {
         Deck {
             cards: Vec::new(),
-            _copies: Vec::new(),
+            copies_: Vec::new(),
         }
     }
 
@@ -93,11 +93,11 @@ impl Deck {
         match self.copies(card) {
             0 => {
                 self.cards.push(card);
-                self._copies.push(1);
+                self.copies_.push(1);
                 true
             }
             1..=MCC_EXCLUSIVE => {
-                self._copies[self.cards.iter().position(|&n| n == card).unwrap()] =
+                self.copies_[self.cards.iter().position(|&n| n == card).unwrap()] =
                     self.copies(card) + 1;
                 true
             }
@@ -126,21 +126,21 @@ impl Deck {
     fn select_random_card_index(&self) -> usize {
         let roll = rand::thread_rng().gen_range(0, self.current_size());
         let mut count: usize = 0;
-        for i in 0..self._copies.len() {
-            count += self._copies[i];
+        for i in 0..self.copies_.len() {
+            count += self.copies_[i];
             if count > roll {
                 return i;
             }
         }
-        self._copies.len()
+        self.copies_.len()
     }
 
     /// Removes one copy of the specified card index (that is, relative to `self.cards`
     /// and `self._copies`).
     fn cut(&mut self, card_index: usize) {
-        self._copies[card_index] -= 1;
-        if self._copies[card_index] == 0 {
-            self._copies.remove(card_index);
+        self.copies_[card_index] -= 1;
+        if self.copies_[card_index] == 0 {
+            self.copies_.remove(card_index);
             self.cards.remove(card_index);
         }
     }
@@ -166,7 +166,14 @@ impl Deck {
     /// # TODO
     /// * add some target curves (aggressive, midrange, control?)
     /// * think of some other parameters
-    pub fn rate(&self, ctx: &Context, curve_weigh: f64, tags_weigh: f64) -> f64 {
+    pub fn rate(
+        &self,
+        ctx: &Context,
+        curve_weigh: f64,
+        tags_weigh: f64,
+        consistency_weigh: f64,
+    ) -> f64 {
+        // curve
         let target_curve = [4, 14, 6, 5, 4, 3, 2, 2];
         let pp_curve = self.get_pp_curve(&ctx);
         let max_curve_distance = (2.0 * (globals::DECK_SIZE as f64).powf(2.0)).sqrt();
@@ -175,17 +182,21 @@ impl Deck {
             curve_score += (target_curve[i] as f64 - pp_curve[i] as f64).powf(2.0);
         }
         let curve_score = 1.0 - (curve_score).sqrt() / max_curve_distance;
+        //tags
         let mut tags_score = 0.0;
         for card in self.cards.iter() {
             for tag in &ctx.tags {
-                if attrs(*card, &ctx).tags.contains(tag) {
+                if attrs(*card, &ctx).tags_.contains(tag) {
                     tags_score += self.copies(*card) as f64;
                     break;
                 }
             }
         }
         tags_score = tags_score / globals::DECK_SIZE as f64;
-        curve_score * curve_weigh + tags_score * tags_weigh
+        // consistency
+        let consistency_score = (2.0 + globals::DECK_SIZE as f64)
+            / (globals::MAX_CARD_COPIES as f64 * self.copies_.len() as f64);
+        curve_score * curve_weigh + tags_score * tags_weigh + consistency_score * consistency_weigh
     }
 
     /// Randomly changes a card in the deck.
@@ -265,6 +276,7 @@ impl Deck {
         deck
     }
 
+    /// Displays the deck.
     pub fn print(&self, ctx: &Context) {
         let mut cards = self.cards.clone();
         cards.sort();
@@ -288,7 +300,7 @@ impl Deck {
         for card in self.cards.iter() {
             for _ in 0..self.copies(*card) {
                 sv_portal_link.push('.');
-                sv_portal_link.push_str(&id_to_sv_portal_encode(&attrs(*card, ctx).id));
+                sv_portal_link.push_str(&id_to_sv_portal_encode(&attrs(*card, ctx).id_));
             }
         }
         println!("{}?lang=en", sv_portal_link);
@@ -299,7 +311,7 @@ impl Clone for Deck {
     fn clone(&self) -> Deck {
         Deck {
             cards: self.cards.clone(),
-            _copies: self._copies.clone(),
+            copies_: self.copies_.clone(),
         }
     }
 }
@@ -310,10 +322,6 @@ fn fromrandom_randomfill_name_attrs() {
     let c = Context::from_debug();
     let d = Deck::from_random(&c);
     assert_eq!(d.current_size(), globals::DECK_SIZE);
-    assert_eq!(
-        attrs(d.cards[0], &c).base_data.description,
-        c.card_library[name(d.cards[0], &c)].base_data.description
-    );
 }
 
 #[test]
