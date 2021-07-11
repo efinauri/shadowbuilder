@@ -1,6 +1,5 @@
 
 use std::io;
-
 use fnv::FnvHashMap;
 use crate::card::CardInfo;
 use std::collections::HashSet;
@@ -104,6 +103,7 @@ impl Context {
         let mut available_tags = HashSet::new();
         let mut prompt = String::from("0 - done choosing\n");
         for (_, info) in &map.0 {
+            if &info.craft_ == "Neutral" {continue;}
             for tag in &info.tags_ {
                 available_tags.insert(tag);
             }

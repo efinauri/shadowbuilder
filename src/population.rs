@@ -8,9 +8,6 @@ pub struct GA<D>
     where D: Deck
 {
     pub ctx: Context,
-    // An array would've been more explicit, but arrays of trait objects have a lot of
-    // technicalities, ultimately meaning that using a vector is more straightforward.
-    // Nonetheless, this field will be treated as though it had the same restrictions of an array.
     pub population: Vec<(D, f64)>,
     pub time: f64,
     pub min_scores: Vec<f64>,
