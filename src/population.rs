@@ -1,4 +1,5 @@
 use rand::Rng;
+
 use crate::context::Context;
 use crate::deck::Deck;
 
@@ -141,7 +142,7 @@ impl<D: Clone + Deck> GA<D> {
 
     pub fn tick(&mut self) -> bool {
         self.update_params();
-        if self.max_scores.last().unwrap() >= &self.target_fitness { return false }
+        if self.max_scores.last().unwrap() >= &self.target_fitness { return false; }
         let selectable = self.cull();
         if selectable < 2 {
             println!(
@@ -159,27 +160,25 @@ impl<D: Clone + Deck> GA<D> {
 }
 
 
- #[cfg(test)]
- mod tests {
-     use rand::Rng;
+#[cfg(test)]
+mod tests {
+    use crate::context::Context;
+    use crate::deck::{Deck, DeckBTree};
+    use crate::population::{GA, POPULATION_SIZE};
 
-     use crate::context::Context;
-     use crate::deck::{DeckBTree, Deck};
-     use crate::population::{GA, POPULATION_SIZE};
-
-     #[test]
-     fn  cull_and_params() {
-         let ctx = Context::from_debug();
-         let mut ga: GA<DeckBTree> = GA::from_rand(ctx);
-         ga.set_rate_args(0.5, 0.0, 0.5);
-         ga.set_cull_args(0.0, 0.9, 0.05);
-         ga.update_params();
-         assert!(ga.population[0].1 >= ga.population[1].1);
-         assert_eq!(ga.cull(), POPULATION_SIZE - 1);
-         ga.set_cull_args(1.0, 0.9, 0.05);
-         ga.update_params();
-         assert_eq!(ga.cull(), 0);
-        }
+    #[test]
+    fn cull_and_params() {
+        let ctx = Context::from_debug();
+        let mut ga: GA<DeckBTree> = GA::from_rand(ctx);
+        ga.set_rate_args(0.5, 0.0, 0.5);
+        ga.set_cull_args(0.0, 0.9, 0.05);
+        ga.update_params();
+        assert!(ga.population[0].1 >= ga.population[1].1);
+        assert_eq!(ga.cull(), POPULATION_SIZE - 1);
+        ga.set_cull_args(1.0, 0.9, 0.05);
+        ga.update_params();
+        assert_eq!(ga.cull(), 0);
+    }
 
     #[test]
     fn select() {

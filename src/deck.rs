@@ -45,7 +45,7 @@ const MAX_QTY: i8 = 3;
 // This separation is done nonetheless because there is still some small gain in modularity,
 // and in the event that Rust introduces such a trait the refactoring would be straightforward.
 
-pub trait Deck{
+pub trait Deck {
     type Card;
     fn new() -> Self;
     // basic methods for deck manipulation and monitoring
@@ -106,7 +106,7 @@ impl Deck for DeckBTree {
 
     fn rand_fill(&mut self, ctx: &Context) {
         while self.len() < DECK_SIZE {
-            let card = rand::thread_rng().gen_range(0, ctx.vec.0.len());
+            let card = rand::thread_rng().gen_range(0, ctx.cards_vec.0.len());
             self.add(card)
         }
     }
@@ -160,7 +160,7 @@ impl Deck for DeckBTree {
         let mut deck_hash = String::new();
         for (idx, qty) in &self.0 {
             let mut card_hash = String::new();
-            let mut id = ctx.vec.0[*idx];
+            let mut id = ctx.cards_vec.0[*idx];
             while id > 0 {
                 card_hash.push(radix[(id % 64) as usize]);
                 id /= 64;
@@ -237,7 +237,7 @@ impl Deck for DeckBTree {
         let temp = max(temp_min, temp - damp);
         // out of bounds range are shifted to respect bounds
         let center = max(temp, idx);
-        let center = min(center, ctx.vec.0.len() as isize - temp);
+        let center = min(center, ctx.cards_vec.0.len() as isize - temp);
         let range = (center - temp, center + temp);
         while self.len() < DECK_SIZE {
             self.add(rand::thread_rng().gen_range(range.0 as usize,
@@ -273,7 +273,7 @@ impl Deck for DeckBTree {
 #[cfg(test)]
 mod tests {
     use crate::context::Context;
-    use crate::deck::{Deck, DECK_SIZE, MAX_QTY, DeckBTree};
+    use crate::deck::{Deck, DECK_SIZE, DeckBTree, MAX_QTY};
 
     #[test]
     fn add_and_len() {
@@ -349,9 +349,9 @@ mod tests {
         d.add(0);
         d.add(0);
         d.add(0);
-        d.add(ctx.vec.0.len() - 1);
-        d.add(ctx.vec.0.len() - 1);
-        d.add(ctx.vec.0.len() - 1);
+        d.add(ctx.cards_vec.0.len() - 1);
+        d.add(ctx.cards_vec.0.len() - 1);
+        d.add(ctx.cards_vec.0.len() - 1);
         d.rand_fill(&ctx);
         println!("{}", d.as_string(&ctx));
         println!("{:?}", d.pp_curve(&ctx));
@@ -364,24 +364,24 @@ mod tests {
         let ctx = Context::from_debug();
         let mut d = DeckBTree::new();
         // all 10+pp
-        for i in ctx.vec.0.len() - 13..ctx.vec.0.len() {
+        for i in ctx.cards_vec.0.len() - 13..ctx.cards_vec.0.len() {
             for _ in 0..3 {
                 d.add(i);
             }
         }
-        d.add(ctx.vec.0.len() - 14);
+        d.add(ctx.cards_vec.0.len() - 14);
         assert!(d.rate(&ctx, 1.0, 0.0, 0.0) < 0.0001);
         let mut d = DeckBTree::new();
         let cmp_arr: [usize; 8] = [4, 14, 6, 5, 4, 3, 2, 2];
         for pp in 0..8 {
             let mut curr: Vec<usize> = Vec::new();
-            for i in 0..ctx.vec.0.len() {
-                if ctx.map.0.get(&ctx.vec.0[i]).unwrap().pp_ == pp + 1 {
+            for i in 0..ctx.cards_vec.0.len() {
+                if ctx.cards_map.0.get(&ctx.cards_vec.0[i]).unwrap().pp_ == pp + 1 {
                     curr.push(i)
                 }
             }
             for i in 0..cmp_arr[pp as usize] {
-                d.add(curr[i as usize]);
+                d.add(curr[i]);
             }
         }
         assert!(f64::abs(1.0 - d.rate(&ctx, 1.0, 0.0, 0.0)) < 0.0001);
@@ -419,15 +419,15 @@ mod tests {
         // so the score should be zero
         assert_eq!(0.0, d.rate(&ctx, 0.0, 0.0, 1.0));
         d = DeckBTree::new();
-        for i in ctx.vec.0.len()-14..ctx.vec.0.len()-1 {
+        for i in ctx.cards_vec.0.len() - 14..ctx.cards_vec.0.len() - 1 {
             d.add(i);
             d.add(i);
             d.add(i);
         }
-        d.add(ctx.vec.0.len()-1);
+        d.add(ctx.cards_vec.0.len() - 1);
         // on the other hand near the end of the list, both because higher pp cards have more effect
         // and because of tagless cards came first, we expect a high concentration of tagged cards.
-        assert!( d.rate(&ctx, 0.0, 0.0, 1.0) > 0.6);
+        assert!(d.rate(&ctx, 0.0, 0.0, 1.0) > 0.6);
         println!("{}", d.url(&ctx));
     }
 
@@ -449,11 +449,11 @@ mod tests {
                 }
             } else { amount_of_differences += 1; }
         }
-            println!("{}\n{}", d.url(&ctx), d2.url(&ctx));
-            // it can rarely happen that a card mutates in itself, resulting in no changes
-            // the most that can happen is that a card mutates onto an another card in the deck
-            // (1 from the contains check + 1 from the card copies comparison)
-            assert!(amount_of_differences <= 2);
+        println!("{}\n{}", d.url(&ctx), d2.url(&ctx));
+        // it can rarely happen that a card mutates in itself, resulting in no changes
+        // the most that can happen is that a card mutates onto an another card in the deck
+        // (1 from the contains check + 1 from the card copies comparison)
+        assert!(amount_of_differences <= 2);
     }
 
     #[test]

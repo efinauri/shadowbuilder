@@ -1,6 +1,6 @@
-use crate::population::GA;
 use crate::context::Context;
 use crate::deck::{Deck, DeckBTree};
+use crate::population::GA;
 
 mod card;
 mod context;
@@ -18,5 +18,4 @@ fn main() {
     println!("{}", g.population[0].0.url(&g.ctx));
     println!("\nEnter any key to exit.");
     std::io::stdin().read_line(&mut String::new()).unwrap();
-
 }
