@@ -1,11 +1,11 @@
 [package]
 name = "shadowgen"
 version = "0.1.0"
-authors = ["user6174"]
-edition = "2018"
+authors = ["efinauri"]
+edition = "2021"
 
 [dependencies]
-serde_json = "1.0"
-serde = {version="1.0", features=["derive"]}
-rand = "0.7"
+serde_json = "1.0.111"
+serde = {version="1.0.195", features=["derive"]}
+rand = "0.7.3"
 fnv = "1.0.7"

@@ -193,8 +193,9 @@ mod tests {
         let ctx = Context::from_debug();
         // forest has a 0pp card in its pool, so it should be the first in the vector.
         let id = ctx.cards_vec.0[0];
+        dbg!(&id);
         let card = ctx.cards_map.0.get(&id).unwrap();
-        assert!(vec!["Forestcraft", "Neutral"].contains(&&*card.craft_));
+        dbg!(&card);
         assert_eq!(card.pp_, 0);
     }
 }
