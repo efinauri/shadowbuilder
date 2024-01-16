@@ -174,11 +174,11 @@ impl Deck for DeckBTree {
         // 3 is rotation, 1 is unlimited
         format!("https://shadowverse-portal.com/deck/{}.{}.{}",
                 match ctx.game_mode {
-                    0 => 3,
+                    0 => 2,
                     1 => 1,
                     _ => panic!("invalid game mode (not 0 or 1)")
                 },
-                ctx.craft,
+                ctx.craft + 1,
                 deck_hash)
     }
 
@@ -246,7 +246,6 @@ impl Deck for DeckBTree {
     }
 
     // The crossover is single-point.
-    //  TODO: double-point crossover should be better.
     fn mix(&self, other: &DeckBTree) -> DeckBTree {
         let cross = rand::thread_rng().gen_range(1, DECK_SIZE - MAX_QTY);
         let mut ret = DeckBTree::new();

@@ -156,28 +156,6 @@ impl Context {
         }
     }
 
-    #[allow(dead_code)]
-    pub fn from_debug() -> Self {
-        let game_mode = 1;
-        let craft = 1;
-        let map = CardsMap::from_input(game_mode, craft).unwrap();
-        let mut tags = HashSet::new();
-        for (_, info) in &map.0 {
-            for tag in &info.tags_ {
-                tags.insert(tag);
-            }
-        }
-        let tags: Vec<_> = tags.into_iter().map(|s| String::from(s)).collect();
-        let vec = CardsVec::from_dict(&map);
-        Context {
-            cards_map: map,
-            cards_vec: vec,
-            game_mode,
-            craft,
-            tags,
-        }
-    }
-
     pub fn idx_to_card(&self, idx: usize) -> &CardInfo {
         self.cards_map.0.get(&self.cards_vec.0[idx]).unwrap()
     }
@@ -185,7 +163,32 @@ impl Context {
 
 #[cfg(test)]
 mod tests {
-    use crate::context::Context;
+    use std::collections::HashSet;
+
+    use crate::context::{CardsMap, CardsVec, Context};
+
+    impl Context {
+        pub fn from_debug() -> Self {
+            let game_mode = 1;
+            let craft = 1;
+            let map = CardsMap::from_input(game_mode, craft).unwrap();
+            let mut tags = HashSet::new();
+            for (_, info) in &map.0 {
+                for tag in &info.tags_ {
+                    tags.insert(tag);
+                }
+            }
+            let tags: Vec<_> = tags.into_iter().map(|s| String::from(s)).collect();
+            let vec = CardsVec::from_dict(&map);
+            Context {
+                cards_map: map,
+                cards_vec: vec,
+                game_mode,
+                craft,
+                tags,
+            }
+        }
+    }
 
     #[test]
     fn ctx() {
